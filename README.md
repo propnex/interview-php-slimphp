@@ -1,202 +1,176 @@
-# 📚 SlimPHP Book Borrowing API – Candidate Assignment
+# 📋 PHP CLI Assignment – Attendance Reconciliation Tool
 
-## 👋 Overview
+## 🧾 Background
 
-You are building a secure REST API using **SlimPHP**, **MySQL**, and **OAuth2** for a book borrowing system.
+Your company’s HR department tracks daily employee attendance using tap-in/out logs and manages leave records separately.
 
-The API should support:
-- Book creation and borrow logging
-- OAuth2-protected access
-- Analytics powered by SQL **window functions (`PARTITION BY`)**
-- Full-text search with summary statistics
-- Middleware-based logging using **Monolog**
-- Proper dependency injection using **PHP-DI**
+Each month, HR manually reconciles:
 
-This assignment evaluates your ability to:
-- Build a modular, production-grade SlimPHP backend
-- Use **`php-di/slim-bridge`** for dependency injection
-- Model SQL data relationships with proper schema
-- Implement secure token-based authentication
-- Write SQL analytics using **window functions**
+- Who came to work?
+- Who was late?
+- Who didn’t show up?
+- Who was on approved leave?
+
+You're tasked to automate this process by building a **PHP CLI script** to analyze two CSV files and generate a clear report.
 
 ---
 
-## 🧱 Part 1: Core API Endpoints
+## 📂 Files Provided
 
-Implement the following authenticated REST endpoints:
+You will receive **two CSV files**:
 
-| Method | Endpoint                  | Auth Required | Description                              |
-|--------|---------------------------|---------------|------------------------------------------|
-| POST   | `/oauth/token`            | ❌             | Issue an OAuth2 token via password grant |
-| POST   | `/books`                  | ✅             | Add a new book                           |
-| GET    | `/books`                  | ✅             | List all books                           |
-| POST   | `/books/{bookId}/borrow`  | ✅             | Record a user borrowing a book           |
-| GET    | `/books/{bookId}/borrows` | ✅             | List borrow logs for a given book        |
+### 1. `attendance.csv`
 
-> All protected endpoints must use a Bearer token:  
-> `Authorization: Bearer <access_token>`
+Daily tap-in and tap-out logs.
+
+| employeeId | date       | tapIn | tapOut |
+|------------|------------|-------|--------|
+| E001       | 2024-09-02 | 09:05 | 18:00  |
+| E002       | 2024-09-02 | 09:30 | 18:15  |
+
+- Time format: 24-hour, `HH:MM`
+- A missing record means the employee didn’t tap in/out.
+
+### 2. `leave.csv`
+
+Approved leave records.
+
+| employeeId | leaveDate  | leaveType | timeStart | timeEnd |
+|------------|------------|-----------|-----------|---------|
+| E002       | 2024-09-03 | full-day  |           |         |
+| E004       | 2024-09-04 | half-am   |           |         |
+| E005       | 2024-09-05 | time-off  | 11:00     | 13:30   |
+
+- `leaveType` can be:
+    - `full-day` → entire work day (9am–6pm)
+    - `half-am`  → morning leave (9am–1pm)
+    - `half-pm`  → afternoon leave (2pm–6pm)
+    - `time-off` → custom block (`timeStart` to `timeEnd`)
+
+❗ Important Constraint:
+The company designates lunch time from 1:00pm to 2:00pm. Therefore, time-off leave blocks cannot fall within 13:00–14:00.
 
 ---
 
-## 🔐 Part 2: OAuth2 Authentication
+## ✅ Part 1 – Daily Reconciliation Report
 
-Implement OAuth2 authentication using:
+Write a PHP CLI script that:
 
-- [`league/oauth2-server`](https://oauth2.thephpleague.com/)
+1. **Reads and parses** both `attendance.csv` and `leave.csv`.
+2. For each working day:
+    - List all employees.
+    - Show tap-in/out if present.
+    - Indicate if the employee:
+        - Was on approved leave (and what kind)
+        - Was late (tap-in after 9:00am unless `half-pm` or `time-off`)
+        - Did not show up (no attendance, no leave)
+3. Print the results to console in a clean, grouped format per date.
 
-Requirements:
-- Use **password grant** flow
-- Store user credentials in the `users` table (hashed)
-- Seed the database with at least **2 test users**
+### 🖨️ Sample Output Format
 
----
-
-## 🗃️ Part 3: Database Schema
-
-Use the following schema with **exact column names**:
-
-```sql
-CREATE TABLE users (
-    userId INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    passwordHash VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE books (
-    bookId INT AUTO_INCREMENT PRIMARY KEY,
-    bookTitle VARCHAR(255) NOT NULL,
-    bookAuthor VARCHAR(255),
-    bookPublishYear INT,
-    FULLTEXT(bookTitle, bookAuthor)
-);
-
-CREATE TABLE borrowlog (
-    borrowLogId INT AUTO_INCREMENT PRIMARY KEY,
-    bookId INT NOT NULL,
-    userId INT NOT NULL,
-    borrowLogDateTime DATETIME NOT NULL,
-    FOREIGN KEY (bookId) REFERENCES books(bookId),
-    FOREIGN KEY (userId) REFERENCES users(userId)
-);
+```
+📆 Date: 2024-09-03 (Tuesday)
+────────────────────────────────────────────
+✔️  E001 (Alice)     Tap In: 09:05    Tap Out: 18:00
+⚠️  E002 (Bob)       Tap In: 09:30    Tap Out: 18:15    Late
+🔁  E004 (Diana)     Tap In: 13:55    Tap Out: 18:05    On Leave: half-am
+❌  E005 (Ethan)     No Record        No Leave Applied
 ```
 
-- Enable **full-text search** on `bookTitle` and `bookAuthor`
-- Use camelCase naming for all fields
-- You may use migrations or raw SQL for setup
+---
+
+## ✅ Part 2 – Summary Reporting & CLI Options (Required)
+
+### 1. `--summary` Flag (Per-Employee Summary)
+
+```bash
+php cli.php --summary
+```
+
+Output a monthly summary for each employee:
+
+```
+📊 Summary for September 2024
+────────────────────────────────────────────
+E001 - Alice
+  ✔ Present:     5 days
+  ⚠ Late:        2 days
+  ❌ No-show:     0 days
+  🔁 Leave:       1 full-day, 1 half-day
+```
 
 ---
 
-## 📊 Part 4: Analytics Endpoints (Using `PARTITION BY`)
+### 2. `--employee=E003` Filter
 
-Implement the following **authenticated** analytics endpoints using **SQL window functions**, specifically `ROW_NUMBER() OVER (PARTITION BY ...)`.
+```bash
+php cli.php --employee=E004
+```
 
-Do not use only `GROUP BY` or subqueries — the logic must involve proper window functions.
-
-Return all results in clean JSON format.
-
-### 1. `GET /analytics/latest-borrow-per-book`
-**Purpose:** Return the most recent borrow log for each book.
-
-**Expected Output per Record:**
-- `bookId`
-- `userId`
-- `borrowLogDateTime`
-
-### 2. `GET /analytics/borrow-rank-per-user`
-**Purpose:** Return each borrow action ranked chronologically for each user-book pair.
-
-**Expected Output per Record:**
-- `borrowLogId`
-- `userId`
-- `bookId`
-- `borrowLogDateTime`
-- `borrowRank` (e.g., 1st, 2nd borrow, etc.)
-
-### 3. `GET /analytics/book-summary`
-**Purpose:** Return a summary of each book, including:
-- Book info
-- Total number of times the book has been borrowed
-- Username of the most recent borrower (if any)
-
-**Optional Query Parameter:**
-- `?query=...` — If provided, filter books using full-text search on `bookTitle` and `bookAuthor`.
-
-**Expected Output per Record:**
-- `bookId`
-- `bookTitle`
-- `bookAuthor`
-- `bookPublishYear`
-- `borrowCount`
-- `lastBorrowedBy` (may be `null` if never borrowed)
+Show daily logs (and summary) only for that employee.
 
 ---
 
-## 🧾 Part 5: Request Logging (Required)
+### 3. `--output=json` or `> file.txt`
 
-Implement a **Slim middleware** that logs every incoming request to a file using [`monolog/monolog`](https://github.com/Seldaek/monolog).
+Enable structured output:
 
-**Logging requirements:**
-- HTTP method (e.g., GET, POST)
-- Request path (e.g., `/books/3/borrow`)
-- Authenticated `userId` if available (or `null`)
+```bash
+php cli.php --summary --output=json
+```
 
-**Log format:** Plain text or JSON — must be easily parsable  
-**Log output file:** e.g., `logs/requests.log`
+Outputs:
 
----
+```json
+[
+  {
+    "employeeId": "E001",
+    "presentDays": 5,
+    "lateDays": 2,
+    "noShowDays": 0,
+    "leaveDays": {
+      "full-day": 1,
+      "half-am": 0,
+      "half-pm": 1
+    }
+  }
+]
+```
 
-## 🧩 Part 6: Dependency Injection
+Or redirect output to a file:
 
-Use **`php-di/slim-bridge`** for dependency injection in your Slim application.
-
-**Requirements:**
-- Register controllers, services, and loggers using the PHP-DI container
-- Use constructor injection instead of `new` inside routes
-- Use config files or factory definitions where appropriate
-
-**Expected Structure:**
-- `index.php` bootstraps Slim using `php-di/slim-bridge`
-- Routes use services injected from the container
-- Monolog logger is injected via DI
-
----
-
-## 🚀 Setup Instructions
-
-1. Clone or unzip the project  
-2. Create a MySQL database and import the schema  
-3. Create a `.env` file with DB and OAuth config  
-4. Install dependencies via Composer:
-   ```bash
-   composer install
-   ```
-5. Run the SlimPHP app:
-   ```bash
-   php -S localhost:8080 -t public
-   ```
-6. Use Postman or `curl` to test all endpoints
+```bash
+php cli.php > report.txt
+```
 
 ---
 
-## 📦 Deliverables
+### 4. 📦 Company-Wide Totals (Required)
 
-Please submit the following in your preferred format (GitHub repo or ZIP file):
+Always include overall stats at the bottom of the summary output:
 
-- ✅ All source code  
-- ✅ `README.md` with setup steps  
-- ✅ `sql/schema.sql` or migration files  
-- ✅ All required endpoints implemented  
-- ✅ Middleware logging with Monolog  
-- ✅ DI setup using `php-di/slim-bridge`  
-- ✅ At least 2 seeded test users  
-- ✅ Sample cURL or Postman test cases  
+```
+📦 Company Totals
+────────────────────────────────────────────
+✔️  Total Present Days: 58
+⚠️  Total Late Days:    11
+❌  Total No-shows:     3
+🔁  Total Leave Days:   10 (4 full, 4 half, 2 time-off)
+```
+
+---
+
+## 📎 Deliverables
+
+Submit:
+
+- `cli.php` (entry script)
+- Any helper classes or utilities
 
 ---
 
 ## 📝 Notes
 
-- Use Composer for all dependency management  
-- Use Slim’s routing + `php-di/slim-bridge` for DI  
-- Follow SOLID principles where possible  
-- All inputs must be validated and safe  
-- Code must be compatible with **PHP 8.x**
+- Code must run on **PHP 8.x**
+- You may use plain PHP or small libraries for CLI argument parsing
+- Output must be clear and grouped as described

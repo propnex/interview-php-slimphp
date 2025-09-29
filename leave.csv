@@ -1,0 +1,15 @@
+employeeId,leaveDate,leaveType,timeStart,timeEnd
+E001,2024-09-12,half-am,,
+E001,2024-09-05,full-day,,
+E001,2024-09-20,time-off,09:00,11:30
+E002,2024-09-16,full-day,,
+E002,2024-09-04,full-day,,
+E002,2024-09-02,half-pm,,
+E003,2024-09-04,time-off,15:00,16:30
+E003,2024-09-19,full-day,,
+E003,2024-09-04,full-day,,
+E004,2024-09-13,full-day,,
+E004,2024-09-20,time-off,15:00,16:30
+E005,2024-09-20,time-off,10:00,12:30
+E005,2024-09-18,half-pm,,
+E005,2024-09-03,half-am,,
