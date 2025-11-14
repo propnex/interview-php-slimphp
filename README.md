@@ -172,5 +172,5 @@ Submit:
 ## 📝 Notes
 
 - Code must run on **PHP 8.x**
-- You may use plain PHP or small libraries for CLI argument parsing
+- You may use plain PHP or small libraries for CLI argument or CSV parsing
 - Output must be clear and grouped as described
