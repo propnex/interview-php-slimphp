@@ -62,7 +62,7 @@ Write a PHP CLI script that:
     - Show tap-in/out if present.
     - Indicate if the employee:
         - Was on approved leave (and what kind)
-        - Was late (tap-in after 9:00am unless `half-pm` or `time-off`)
+        - Was late (e.g. tap-in after 9:00am without `half-am` or `time-off`)
         - Did not show up (no attendance, no leave)
 3. Print the results to console in a clean, grouped format per date.
 
