@@ -139,8 +139,57 @@ function isEmployeePerfectForDay(
 Use `fgetcsv()`:
 
 ```php
-function parseCsv(string $filename): array {
-    ...
+/**
+ * Reads a CSV file and returns an array of associative rows.
+ *
+ * Example return:
+ * [
+ *   ["employeeId" => "E001", "date" => "2024-09-02", "tapIn" => "09:05", "tapOut" => "18:00"],
+ *   ["employeeId" => "E002", "date" => "2024-09-02", "tapIn" => "09:30", "tapOut" => "18:15"],
+ * ]
+ */
+function readCsv(string $filename): array
+{
+    if (!file_exists($filename)) {
+        throw new RuntimeException("CSV file not found: {$filename}");
+    }
+
+    $rows = [];
+    $handle = fopen($filename, 'r');
+
+    if (!$handle) {
+        throw new RuntimeException("Unable to open CSV file: {$filename}");
+    }
+
+    // Read header row
+    $headers = fgetcsv($handle);
+
+    if (!$headers) {
+        fclose($handle);
+        throw new RuntimeException("CSV file is empty or invalid: {$filename}");
+    }
+
+    // Clean BOM from first header if present
+    $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
+
+    while (($data = fgetcsv($handle)) !== false) {
+        // Skip blank lines
+        if (count($data) === 1 && trim($data[0]) === '') {
+            continue;
+        }
+
+        $row = [];
+
+        foreach ($headers as $i => $header) {
+            // Assign null if column is missing
+            $row[$header] = $data[$i] ?? null;
+        }
+
+        $rows[] = $row;
+    }
+
+    fclose($handle);
+    return $rows;
 }
 ```
 
