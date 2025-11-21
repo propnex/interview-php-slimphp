@@ -58,20 +58,27 @@ Your script must print **one section per date**, in this format:
 ```
 📆 Date: 2024-09-01 (Sunday)
 ────────────────────────────────────────────
-[MIA]    E001    Tap In: -        Tap Out: -        no leave applied
-[MIA]    E002    Tap In: -        Tap Out: -        no leave applied
-[MIA]    E004    Tap In: -        Tap Out: -        no leave applied
+[OK]     E001    Tap In: -        Tap Out: -        no leave needed
+[ERROR]  E002    Tap In: 09:30    Tap Out: 18:15
+[OK]     E004    Tap In: -        Tap Out: -        full-day
 [MIA]    E005    Tap In: -        Tap Out: -        no leave applied
 
 
 📆 Date: 2024-09-02 (Monday)
 ────────────────────────────────────────────
-[OK]     E001    Tap In: 09:05    Tap Out: 18:00
-[ERROR]  E002    Tap In: 09:30    Tap Out: 18:15
-[MIA]    E004    Tap In: -        Tap Out: -        no leave applied
+[MIA]    E001    Tap In: -        Tap Out: -        no leave applied
+[MIA]    E002    Tap In: -        Tap Out: -        no leave applied
+[OK]     E004    Tap In: 13:55    Tap Out: 18:05
+[OK]     E005    Tap In: -        Tap Out: -        time-off (11:00–13:30)
+
+📆 Date: 2024-09-03 (Tuesday)
+────────────────────────────────────────────
+[MIA]    E001    Tap In: -        Tap Out: -        no leave applied
+[MIA]    E002    Tap In: -        Tap Out: -        no leave applied
+[OK]     E004    Tap In: 13:55    Tap Out: 18:05    half-am
 [MIA]    E005    Tap In: -        Tap Out: -        no leave applied
 
-..... rest of the days
+..... rest of the days for whole of 2024-09 month
 
 ```
 
