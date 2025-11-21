@@ -56,12 +56,23 @@ Assumption: All input is valid (e.g., time-off does not overlap lunch 13:00–14
 Your script must print **one section per date**, in this format:
 
 ```
-Date: 2024-09-03 (Tuesday)
-------------------------------------------------------------
+📆 Date: 2024-09-01 (Sunday)
+────────────────────────────────────────────
+[MIA]    E001    Tap In: -        Tap Out: -        no leave applied
+[MIA]    E002    Tap In: -        Tap Out: -        no leave applied
+[MIA]    E004    Tap In: -        Tap Out: -        no leave applied
+[MIA]    E005    Tap In: -        Tap Out: -        no leave applied
+
+
+📆 Date: 2024-09-02 (Monday)
+────────────────────────────────────────────
 [OK]     E001    Tap In: 09:05    Tap Out: 18:00
 [ERROR]  E002    Tap In: 09:30    Tap Out: 18:15
-[OK]     E004    Tap In: 13:55    Tap Out: 18:05    half-am
+[MIA]    E004    Tap In: -        Tap Out: -        no leave applied
 [MIA]    E005    Tap In: -        Tap Out: -        no leave applied
+
+..... rest of the days
+
 ```
 
 Employee names are not required.
