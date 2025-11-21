@@ -92,8 +92,8 @@ Examples:
 - Full-day leave (attendance optional)
 
 **Note for candidates:**  
-If an employee has full-day leave but still comes to work, treat it as **OK**.  
-The company is happy if the employee works on a leave day.  
+If an employee has valid leave but still comes to work, treat it as **OK**.  
+The company is happy if the employee works on leave.  
 No validation needed.
 
 ---
