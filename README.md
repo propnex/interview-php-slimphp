@@ -56,22 +56,22 @@ Assumption: All input is valid (e.g., time-off does not overlap lunch 13:00–14
 Your script must print **one section per date**, in this format:
 
 ```
-📆 Date: 2024-09-01 (Sunday)
+📆 Date: 2024-09-01
 ────────────────────────────────────────────
-[OK]     E001    Tap In: -        Tap Out: -        no leave needed
-[ERROR]  E002    Tap In: 09:30    Tap Out: 18:15
+[OK]     E001    Tap In: 09:00    Tap Out: 18:00    no leave applied
+[ERROR]  E002    Tap In: 09:30    Tap Out: 18:15    no leave applied
 [OK]     E004    Tap In: -        Tap Out: -        full-day
 [MIA]    E005    Tap In: -        Tap Out: -        no leave applied
 
 
-📆 Date: 2024-09-02 (Monday)
+📆 Date: 2024-09-02
 ────────────────────────────────────────────
 [MIA]    E001    Tap In: -        Tap Out: -        no leave applied
 [MIA]    E002    Tap In: -        Tap Out: -        no leave applied
-[OK]     E004    Tap In: 13:55    Tap Out: 18:05
+[OK]     E004    Tap In: 08:55    Tap Out: 13:05    half-pm
 [OK]     E005    Tap In: -        Tap Out: -        time-off (11:00–13:30)
 
-📆 Date: 2024-09-03 (Tuesday)
+📆 Date: 2024-09-03
 ────────────────────────────────────────────
 [MIA]    E001    Tap In: -        Tap Out: -        no leave applied
 [MIA]    E002    Tap In: -        Tap Out: -        no leave applied
