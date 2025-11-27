@@ -62,24 +62,6 @@ Your script must print **one section per date**, in this format:
 [ERROR]  E002    Tap In: 09:30    Tap Out: 18:15    no leave applied
 [OK]     E004    Tap In: -        Tap Out: -        full-day
 [MIA]    E005    Tap In: -        Tap Out: -        no leave applied
-
-
-📆 Date: 2024-09-02
-────────────────────────────────────────────
-[MIA]    E001    Tap In: -        Tap Out: -        no leave applied
-[MIA]    E002    Tap In: -        Tap Out: -        no leave applied
-[OK]     E004    Tap In: 08:55    Tap Out: 13:05    half-pm
-[OK]     E005    Tap In: -        Tap Out: -        time-off (11:00–13:30)
-
-📆 Date: 2024-09-03
-────────────────────────────────────────────
-[MIA]    E001    Tap In: -        Tap Out: -        no leave applied
-[MIA]    E002    Tap In: -        Tap Out: -        no leave applied
-[OK]     E004    Tap In: 13:55    Tap Out: 18:05    half-am
-[MIA]    E005    Tap In: -        Tap Out: -        no leave applied
-
-..... rest of the days for whole of 2024-09 month
-
 ```
 
 Employee names are not required.
@@ -99,9 +81,7 @@ Examples:
 - Full-day leave (attendance optional)
 
 **Note for candidates:**  
-If an employee has valid leave but still comes to work, treat it as **OK**.  
-The company is happy if the employee works on leave.  
-No validation needed.
+If an employee has valid leave but still comes to work, treat it as **OK**.
 
 ---
 
@@ -141,9 +121,9 @@ function isEmployeePerfectForDay(
 
 ## 💡 Helpful Hints
 
-### Hint 1 — Parsing CSV
+### Step 1 — Parse CSV files
 
-Use `fgetcsv()`:
+Use the following helper to read CSV files into associative arrays:
 
 ```php
 /**
@@ -200,24 +180,81 @@ function readCsv(string $filename): array
 }
 ```
 
-### Hint 2 — Create lookup tables
+Then call it:
+
+```php
+$attendanceRows = readCsv('attendance.csv');
+$leaveRows = readCsv('leave.csv');
+```
+
+---
+
+### Step 2 — Collect ALL unique employeeIds
+
+Extract employeeIds from:
+
+- `attendance.csv`
+- `leave.csv`
+
+Then:
+
+- merge
+- remove duplicates
+- sort
+
+---
+
+### Step 3 — Collect ALL unique dates
+
+Extract dates from:
+
+- `date` in attendance
+- `leaveDate` in leave
+
+Then:
+
+- merge
+- remove duplicates
+- sort
+
+---
+
+### Step 4 — Build lookup tables
+
+Convert data into lookup structures for fast access:
 
 ```
 $attendanceByDate[$date][$employeeId] = [...];
 $leaveByDate[$date][$employeeId] = [...];
 ```
 
-### Hint 3 — Collect ALL Employees & Dates
+Lookup usage:
 
-Extract from BOTH CSV files:
+```php
+$attendanceForDay = $attendanceByDate[$date][$employeeId] ?? null;
+$leaveForDay = $leaveByDate[$date][$employeeId] ?? null;
+```
 
-- employeeId
-- date / leaveDate
+---
 
-Then:
-- Make unique lists
-- Sort them
-- Loop dates → loop employees → call `isEmployeePerfectForDay()`
+### Step 5 — `isEmployeePerfectForDay()`
+
+For each employee on each date:
+
+```php
+$status = isEmployeePerfectForDay(
+    $employeeId,
+    $date,
+    $attendanceForDay,
+    $leaveForDay
+);
+```
+
+Must return exactly:
+
+- `"OK"`
+- `"ERROR"`
+- `"MIA"`
 
 ---
 
@@ -226,22 +263,31 @@ Then:
 Optional enhancements:
 
 ### `--summary`
+
 Totals per employee:
+
 ```
 E001: OK=5  ERROR=1  MIA=0
 ```
 
+---
+
 ### `--employee=E002`
+
 Show only that employee.
 
+---
+
 ### `--output=json`
-Output summary as JSON.
+
+Output summary in JSON format.
 
 ---
 
 ## 📦 Deliverables
 
 Submit:
+
 - `cli.php`
 - Any helper files
 - Must include your implementation of `isEmployeePerfectForDay()`
